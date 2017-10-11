@@ -14,24 +14,30 @@ class KubeImageChooserSpawner(KubeSpawner):
         'jupyter/r-singleuser'
     ]
     '''
-    
+
     dockerimages = List(
-        trait = Unicode(),
-        default_value = ['jupyterhub/singleuser'],
-        minlen = 1,
-        config = True,
-        help = "Docker images that have been pre-pulled to the execution host."
+        trait=Unicode(),
+        default_value=['jupyterhub/singleuser'],
+        minlen=1,
+        config=True,
+        help="Docker images that have been pre-pulled to the execution host."
     )
-    form_template = Unicode("""
+    form_template = Unicode(
+        """
         <label for="dockerimage">Select a Docker image:</label>
         <select class="form-control" name="dockerimage" required autofocus>
             {option_template}
-        </select>""",
-        config = True, help = "Form template."
+        </select>
+        """,
+        config=True,
+        help="Form template."
     )
-    option_template = Unicode("""
-        <option value="{image}">{image}</option>""",
-        config = True, help = "Template for html form options."
+    option_template = Unicode(
+        """
+        <option value="{image}">{image}</option>
+        """,
+        config=True,
+        help="Template for html form options."
     )
 
     @default('options_form')
@@ -52,7 +58,8 @@ class KubeImageChooserSpawner(KubeSpawner):
         dockerimage = formdata.get('dockerimage', [default])[0]
 
         # Don't allow users to input their own images
-        if dockerimage not in self.dockerimages: dockerimage = default
+        if dockerimage not in self.dockerimages:
+            dockerimage = default
 
         options = {
             'container_image': dockerimage,

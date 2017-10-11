@@ -1,16 +1,18 @@
 # imagespawner
-DockerSpawner with image selection
+
+KubeSpawner with image selection
 
 Let JupyterHub users choose which docker image they want to spawn.
 
 In your JupyterHub configuration:
 
 ```
-c.JupyterHub.spawner_class = DockerImageChooserSpawner
-
-# The admin must pull these before they can be used.
-c.DockerImageChooserSpawner.dockerimages = [
-	'jupyterhub/singleuser',
-	'jupyter/r-singleuser'
+c.JupyterHub.spawner_class = KubeImageChooserSpawner
+c.KubeImageChooserSpawner.dockerimages = [
+    'jupyterhub/singleuser',
+    'jupyter/r-singleuser'
 ]
 ```
+
+Requirements:
+- https://github.com/jupyterhub/kubespawner

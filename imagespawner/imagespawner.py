@@ -1,4 +1,5 @@
 from dockerspawner import DockerSpawner
+from kubespawner import KubeSpawner
 from traitlets import default, Unicode, List
 from tornado import gen
 
@@ -62,6 +63,30 @@ class DockerImageMixin():
         }
         return options
 
+
+class KubeImageChooserSpawner(KubeSpawner, DockerImageMixin):
+    '''Enable the user to select the docker image that gets spawned.
+
+    Define the available docker images in the JupyterHub configuration and pull
+    them to the execution nodes:
+
+    c.JupyterHub.spawner_class = DockerImageChooserSpawner
+    c.KubeImageChooserSpawner.dockerimages = [
+        'jupyterhub/singleuser',
+        'jupyter/r-singleuser'
+    ]
+    '''
+
+    @gen.coroutine
+    def start(self, *args, **kwargs):
+        # container_prefix is used to construct container_name
+        #self.container_prefix = self.user_options['container_prefix']
+        self.singleuser_image_spec = self.user_options['container_image']
+
+        # start the container
+        ip, port = yield super(KubeImageChooserSpawner, self).start(
+            self, **args, **kwargs)
+        return ip, port
 
 
 class DockerImageChooserSpawner(DockerSpawner, DockerImageMixin):

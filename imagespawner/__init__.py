@@ -1,1 +1,2 @@
+from .imagespawner import DockerImageChooserSpawner
 from .imagespawner import KubeImageChooserSpawner

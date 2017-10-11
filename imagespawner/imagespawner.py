@@ -1,15 +1,15 @@
-from dockerspawner import DockerSpawner
+from kubespawner import KubeSpawner
 from traitlets import default, Unicode, List
 from tornado import gen
 
-class DockerImageChooserSpawner(DockerSpawner):
-    '''Enable the user to select the docker image that gets spawned.
-    
-    Define the available docker images in the JupyterHub configuration and pull
-    them to the execution nodes:
 
-    c.JupyterHub.spawner_class = DockerImageChooserSpawner
-    c.DockerImageChooserSpawner.dockerimages = [
+class KubeImageChooserSpawner(KubeSpawner):
+    '''Enable the user to select the docker image that gets spawned.
+
+    Define the available docker images in the JupyterHub configuration:
+
+    c.JupyterHub.spawner_class = KubeImageChooserSpawner
+    c.KubeImageChooserSpawner.dockerimages = [
         'jupyterhub/singleuser',
         'jupyter/r-singleuser'
     ]
@@ -54,30 +54,23 @@ class DockerImageChooserSpawner(DockerSpawner):
         # Don't allow users to input their own images
         if dockerimage not in self.dockerimages: dockerimage = default
 
-        # container_prefix: The prefix of the user's container name is inherited 
-        # from DockerSpawner and it defaults to "jupyter". Since a single user may launch different containers
-        # (even though not simultaneously), they should have different
-        # prefixes. Otherwise docker will only save one container per user. We
-        # borrow the image name for the prefix.
         options = {
             'container_image': dockerimage,
-            'container_prefix': '{}-{}'.format(
-                super().container_prefix, dockerimage.replace('/', '-')
-            )
+            'container_prefix': dockerimage.replace('/', '-'),
         }
         return options
 
     @gen.coroutine
-    def start(self, image=None, extra_create_kwargs=None,
-            extra_start_kwargs=None, extra_host_config=None):
-        # container_prefix is used to construct container_name
-        self.container_prefix = self.user_options['container_prefix']
+    def start(self, *args, **kwargs):
+        # TODO: Override _expand_user_properties() to include
+        # container_prefix?
+        self.singleuser_image_spec = self.user_options['container_image']
 
         # start the container
-        yield DockerSpawner.start(
-            self, image=self.user_options['container_image'],
-            extra_create_kwargs=extra_create_kwargs,
-            extra_host_config=extra_host_config)
-    
+        ip, port = yield super(KubeImageChooserSpawner, self).start(
+            *args, **kwargs)
+        return ip, port
+
+
 # http://jupyter.readthedocs.io/en/latest/development_guide/coding_style.html
 # vim: set ai et ts=4 sw=4:

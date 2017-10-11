@@ -2,19 +2,14 @@ from dockerspawner import DockerSpawner
 from traitlets import default, Unicode, List
 from tornado import gen
 
-class DockerImageChooserSpawner(DockerSpawner):
-    '''Enable the user to select the docker image that gets spawned.
-    
-    Define the available docker images in the JupyterHub configuration and pull
-    them to the execution nodes:
 
-    c.JupyterHub.spawner_class = DockerImageChooserSpawner
-    c.DockerImageChooserSpawner.dockerimages = [
-        'jupyterhub/singleuser',
-        'jupyter/r-singleuser'
-    ]
+class DockerImageMixin():
+    '''Enable the user to select the docker image that gets spawned.
+
+    Define the available docker images in the JupyterHub configuration and pull
+    them to the execution nodes
     '''
-    
+
     dockerimages = List(
         trait = Unicode(),
         default_value = ['jupyterhub/singleuser'],
@@ -66,6 +61,21 @@ class DockerImageChooserSpawner(DockerSpawner):
             )
         }
         return options
+
+
+
+class DockerImageChooserSpawner(DockerSpawner, DockerImageMixin):
+    '''Enable the user to select the docker image that gets spawned.
+
+    Define the available docker images in the JupyterHub configuration and pull
+    them to the execution nodes:
+
+    c.JupyterHub.spawner_class = DockerImageChooserSpawner
+    c.DockerImageChooserSpawner.dockerimages = [
+        'jupyterhub/singleuser',
+        'jupyter/r-singleuser'
+    ]
+    '''
 
     @gen.coroutine
     def start(self, image=None, extra_create_kwargs=None,

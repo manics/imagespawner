@@ -1,6 +1,6 @@
 # imagespawner
 
-KubeSpawner with image selection
+DockerSpawner and KubeSpawner with image selection
 
 Let JupyterHub users choose which docker image they want to spawn.
 
@@ -15,4 +15,5 @@ c.KubeImageChooserSpawner.dockerimages = [
 ```
 
 Requirements:
+- dockerspawner
 - https://github.com/jupyterhub/kubespawner

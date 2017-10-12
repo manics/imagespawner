@@ -9,6 +9,7 @@ from traitlets import (
     Unicode,
 )
 from tornado import gen
+from tornado.escape import xhtml_escape
 
 
 class ImageChooserMixin(HasTraits):
@@ -34,7 +35,7 @@ class ImageChooserMixin(HasTraits):
         </select>
         <label for="dockerpull">Pull image:</label>
         <input class="form-control" type="checkbox" name="dockerpull" value="yes" />
-        <label for="dockercustomimage">Custom image specification:</label>
+        <label for="dockercustomimage">Alternatively enter an image specification (must match regular expression <code>{image_regex}</code>):</label>
         <input class="form-control" type="text" name="dockercustomimage" />
         """,
         config = True,
@@ -54,7 +55,9 @@ class ImageChooserMixin(HasTraits):
         options = ''.join([
             self.option_template.format(image=di) for di in self.dockerimages
         ])
-        return self.form_template.format(option_template=options)
+        image_regex = xhtml_escape(self.dockercustomimage_regex)
+        return self.form_template.format(
+            option_template=options, image_regex=image_regex)
 
     def options_from_form(self, formdata):
         """Parse the submitted form data and turn it into the correct

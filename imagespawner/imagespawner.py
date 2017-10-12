@@ -33,8 +33,6 @@ class ImageChooserMixin(HasTraits):
         <select class="form-control" name="dockerimage" required autofocus>
             {option_template}
         </select>
-        <label for="dockerpull">Pull image:</label>
-        <input class="form-control" type="checkbox" name="dockerpull" value="yes" />
         <label for="dockercustomimage">Alternatively enter an image specification (must match regular expression <code>{image_regex}</code>):</label>
         <input class="form-control" type="text" name="dockercustomimage" />
         """,
@@ -68,7 +66,6 @@ class ImageChooserMixin(HasTraits):
         # formdata looks like {'dockerimage': ['jupyterhub/singleuser']}"""
         dockerimage = formdata.get('dockerimage', [default])[0]
         dockercustomimage = formdata.get('dockercustomimage')[0]
-        dockerpull = formdata.get('dockerpull') == ['yes']
 
         if dockercustomimage:
             dockerimage = dockercustomimage
@@ -78,7 +75,6 @@ class ImageChooserMixin(HasTraits):
 
         options = {
             'container_image': dockerimage,
-            'dockerpull': dockerpull,
         }
         return options
 
@@ -130,11 +126,6 @@ class KubeImageChooserSpawner(ImageChooserMixin, KubeSpawner):
         options = change.new
         if 'container_image' in options:
             self.singleuser_image_spec = options['container_image']
-        if options.get('dockerpull'):
-            self.singleuser_image_pull_policy = 'Always'
-        self.log.debug(
-            'Updated options image_spec:%s pull_policy:%s',
-            self.singleuser_image_spec, self.singleuser_image_pull_policy)
 
 
 # http://jupyter.readthedocs.io/en/latest/development_guide/coding_style.html

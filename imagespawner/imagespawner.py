@@ -49,16 +49,8 @@ class ImageChooserMixin(HasTraits):
         # Don't allow users to input their own images
         if dockerimage not in self.dockerimages: dockerimage = default
 
-        # container_prefix: The prefix of the user's container name is inherited 
-        # from DockerSpawner and it defaults to "jupyter". Since a single user may launch different containers
-        # (even though not simultaneously), they should have different
-        # prefixes. Otherwise docker will only save one container per user. We
-        # borrow the image name for the prefix.
         options = {
             'container_image': dockerimage,
-            'container_prefix': '{}-{}'.format(
-                super().container_prefix, dockerimage.replace('/', '-')
-            )
         }
         return options
 
@@ -80,7 +72,10 @@ class DockerImageChooserSpawner(ImageChooserMixin, DockerSpawner):
     def start(self, image=None, extra_create_kwargs=None,
             extra_start_kwargs=None, extra_host_config=None):
         # container_prefix is used to construct container_name
-        self.container_prefix = self.user_options['container_prefix']
+        self.container_prefix = '{}-{}'.format(
+            super().container_prefix,
+            self.user_options['container_image'].replace('/', '-')
+        )
 
         # start the container
         yield DockerSpawner.start(

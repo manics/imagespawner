@@ -1,6 +1,8 @@
 from dockerspawner import DockerSpawner
+from re import match
 from traitlets import (
     default,
+    observe,
     HasTraits,
     List,
     Unicode,
@@ -15,18 +17,34 @@ class ImageChooserMixin(HasTraits):
         default_value = ['jupyterhub/singleuser'],
         minlen = 1,
         config = True,
-        help = "Docker images that have been pre-pulled to the execution host."
+        help = "Predefined Docker images."
     )
+
+    dockercustomimage_regex = Unicode(
+        "^imagedata/jupyter-[a-z0-9:\.-]+$",
+        config = True,
+        help = "Regular expression to validate custom image specifications"
+    )
+
     form_template = Unicode("""
         <label for="dockerimage">Select a Docker image:</label>
         <select class="form-control" name="dockerimage" required autofocus>
             {option_template}
-        </select>""",
-        config = True, help = "Form template."
+        </select>
+        <label for="dockerpull">Pull image:</label>
+        <input class="form-control" type="checkbox" name="dockerpull" value="yes" />
+        <label for="dockercustomimage">Custom image specification:</label>
+        <input class="form-control" type="text" name="dockercustomimage" />
+        """,
+        config = True,
+        help = "Form template."
     )
+
     option_template = Unicode("""
-        <option value="{image}">{image}</option>""",
-        config = True, help = "Template for html form options."
+        <option value="{image}">{image}</option>
+        """,
+        config = True,
+        help = "Template for html form options."
     )
 
     @default('options_form')
@@ -45,12 +63,18 @@ class ImageChooserMixin(HasTraits):
 
         # formdata looks like {'dockerimage': ['jupyterhub/singleuser']}"""
         dockerimage = formdata.get('dockerimage', [default])[0]
+        dockercustomimage = formdata.get('dockercustomimage')[0]
+        dockerpull = formdata.get('dockerpull') == ['yes']
 
-        # Don't allow users to input their own images
-        if dockerimage not in self.dockerimages: dockerimage = default
+        if dockercustomimage:
+            dockerimage = dockercustomimage
+        if (dockerimage not in self.dockerimages and
+            not match(self.dockercustomimage_regex, dockerimage)):
+                raise ValueError('Invalid Docker image specification')
 
         options = {
             'container_image': dockerimage,
+            'dockerpull': dockerpull,
         }
         return options
 

@@ -1,4 +1,5 @@
 from dockerspawner import DockerSpawner
+from kubespawner import KubeSpawner
 from re import match
 from traitlets import (
     default,
@@ -102,10 +103,36 @@ class DockerImageChooserSpawner(ImageChooserMixin, DockerSpawner):
         )
 
         # start the container
-        yield DockerSpawner.start(
+        ip, port = yield DockerSpawner.start(
             self, image=self.user_options['container_image'],
             extra_create_kwargs=extra_create_kwargs,
             extra_host_config=extra_host_config)
-    
+        return ip, port
+
+
+class KubeImageChooserSpawner(ImageChooserMixin, KubeSpawner):
+    '''Enable the user to select the docker image that gets spawned.
+
+    Define the available docker images in the JupyterHub configuration:
+
+    c.JupyterHub.spawner_class = KubeImageChooserSpawner
+    c.KubeImageChooserSpawner.dockerimages = [
+        'jupyterhub/singleuser',
+        'jupyter/r-singleuser'
+    ]
+    '''
+
+    @observe('user_options')
+    def _update_options(self, change):
+        options = change.new
+        if 'container_image' in options:
+            self.singleuser_image_spec = options['container_image']
+        if options.get('dockerpull'):
+            self.singleuser_image_pull_policy = 'Always'
+        self.log.debug(
+            'Updated options image_spec:%s pull_policy:%s',
+            self.singleuser_image_spec, self.singleuser_image_pull_policy)
+
+
 # http://jupyter.readthedocs.io/en/latest/development_guide/coding_style.html
 # vim: set ai et ts=4 sw=4:
